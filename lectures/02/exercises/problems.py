@@ -7,9 +7,18 @@ Any 14 / 16 problems solved count as 100%
 1) Create class User with:
     name,
     method say_hi() which prints "Hello, I am {name}"
-"""
+    """
 
-
+class User:
+  def __init__(self, name):
+    self.name = name 
+  
+  def say_hi(self):
+    return f"Hello, I'am {self.name}"
+    
+u1 = User("Togzhan")
+u1.say_hi()
+    
 """
 2) BankAccount
 Create class `BankAccount` with:
@@ -21,6 +30,21 @@ Rules:
 - Non-positive `deposit`/`withdraw` amounts are ignored.
 - `withdraw` bigger than current balance is ignored.
 """
+
+class BankAccount:
+  def __init__(self, owner: str, balance: float = 0.0)-> None:
+    self.owner = owner
+    self.balance = balance if balance >0 else 0.0
+  
+  def deposite(self, amount: float) -> None:
+    if amount > 0:
+      self.balance += amount
+    
+  def withfdraw(self, amount: float) -> None:
+    if 0 < amount < self.balance:
+      self.balance  -= amount 
+  
+  
 
 
 """
@@ -34,6 +58,20 @@ Rules:
 - Each instance has independent member storage.
 """
 
+class Team:
+  def __init__(self):
+    self.list1 = []
+    
+  def add(self, name:str):
+    self.list1.append(name)
+  def  __len__(self):
+    return len(self.list1)
+    
+    
+    
+    
+
+
 """ (Advanced, optional)
 5) QueueState
 Create class `QueueState`:
@@ -45,6 +83,18 @@ Rules:
 - FIFO behavior.
 - `pop` returns `None` when empty.
 """
+class QueueState:
+  def __init__(self):
+    self.items = []
+    
+  def push(self, item :str):
+    self.items.append(item)
+    
+  def pop(self):
+    self.items.pop(0)
+    
+    
+
 
 
 """ (Advanced, optional)
@@ -63,6 +113,11 @@ Rules:
 """
 
 
+  
+  
+  
+
+
 """
 7) ShoppingCart
 Create class `ShoppingCart` with:
@@ -74,7 +129,37 @@ Rules:
 - `price < 0` or `qty <= 0` items are ignored.
 - `repr` must include `ShoppingCart`.
 """
-
+class ShoppingCart:
+  def __init__(self):
+    self.lst = []
+    
+  def add_item(self, name: str, price: float, qty: int = 1):
+    if price <0 or qty <= 0:
+      return
+    else:
+      self.lst.append((name, price, qty))
+    
+  def total_items(self):
+    total = 0
+    for name, price, qty in self.lst:
+       total += qty
+    return total 
+       
+      
+  def total_price(self):
+    total = 0
+    for name, price, qty in self.lst:
+      total += price * qty
+    return total
+  
+  def __repr__(self):
+     return f"ShoppingCart {self.lst} "
+  
+    
+    
+        
+      
+    
 
 """
 8) Classroom (class attribute)
@@ -89,7 +174,24 @@ Rules:
 - `set_school_name` must update shared class attribute for all instances.
 """
 
-
+class Classroom:
+  school_name = "Harbour Space"
+  
+  def __init__(self, group_name:str):
+    self.group_name = group_name
+    self.items = []
+  
+  def add_student(self, name: str):
+    self.items.append(name)
+  
+  def __len__(self):
+    return len(self.items)
+  
+  def set_school_name(self, new_name:str):
+    Classroom.school_name = new_name
+    
+    
+    
 """
 9) Rectangle
 Create class `Rectangle` with:
@@ -99,7 +201,18 @@ Create class `Rectangle` with:
 Rules:
 - Store positive dimensions using absolute values.
 """
-
+class Rectangle:
+  def __init__(self, width: float, height: float):
+    self.width = width 
+    self.height = height 
+    
+  def area(self):
+    self.area = self.width * self.height
+    return self.area 
+  
+  def perimeter(self):
+    
+    
 
 """
 10) Playlist
