@@ -64,6 +64,7 @@ class Team:
     
   def add(self, name:str):
     self.list1.append(name)
+  
   def  __len__(self):
     return len(self.list1)
     
@@ -203,14 +204,19 @@ Rules:
 """
 class Rectangle:
   def __init__(self, width: float, height: float):
-    self.width = width 
-    self.height = height 
+    self.width = abs(width) 
+    self.height = abs(height)
     
   def area(self):
-    self.area = self.width * self.height
-    return self.area 
+    return self.width * self.height
+    
   
   def perimeter(self):
+   return 2*(self.width + self.height)
+  
+  
+  
+    
     
     
 
@@ -226,6 +232,23 @@ Rules:
 - Preserve insertion order.
 """
 
+class Playlist:
+  def __init__(self):
+    self.items = []
+    
+  def add(self, song:str):
+    self.items.append(song)
+    
+  def __len__(self):
+    return len(self.items)
+  
+  def __iter__(self):
+    return iter(self.items)
+  
+  def __contains__(self, song: str):
+    return song in self.items
+    
+
 
 """
 11) Product
@@ -238,7 +261,26 @@ Rules:
 - Negative price is clamped to `0`.
 - Discount percent is clamped to `[0, 100]`.
 """
-
+class Product:
+  def __init__(self, name:str, price: float):
+    self.name = name
+    self.price = price if price > 0 else 0
+  
+  def get_price(self):
+    return self.price
+  
+  def set_price(self, value: float):
+    return value if value > 0 else 0
+  
+  def apply_discount(self, percent: float):
+    if percent <0:
+      percent = 0
+    elif percent >100:
+      percent = 100
+    self.price *=  (1 - percent %100)
+      
+    
+    
 
 """
 12) Person + Student (inheritance)
@@ -249,10 +291,30 @@ Required format:
 - `Person(name=Ana)`
 - `Student(name=Bo, group=G2)`
 """
-"""
+
+class Person:
+  def __init__(self, name):
+    self.name = name
+  def describe(self):
+    return 
+  
+class Student(Person):
+  def __init__(self, name, group):
+    self.name = name
+    self.group = group
+    
+  def describe(self):
+    return
+  
+p1 = Person("Anna")
+p2 = Student("Anna" "G2")
+    
+    
 
 
-"""
+
+
+
 """
 13) Point2D (magic methods)
 Create class `Point2D` with:
@@ -263,7 +325,19 @@ Rules:
 - Euclidean distance.
 - `repr` format: `Point2D(x, y)`.
 """
+import math
+class Point2D:
+  def __init__(self, x, y):
+    self.x = x
+    self.y = y
+  
+  
+  def distance_to(self, other:object):
+    return math.sqrt((other.x - self.x) ** 2 + (other.y - self.y) ** 2)
 
+  def __eq__(self, other:object):
+    return isinstance(other, Point2D) and self.x == other.x and self.y== other
+      
 
 """
 14) Inventory
@@ -278,7 +352,32 @@ Rules:
 - Non-positive `qty` is ignored.
 - Removing too much removes item completely (count becomes `0`).
 """
-
+class Inventory:
+  def __init__(self):
+    self.items = {}
+    
+  def add(self, name:str, qty:int = 1):
+    if qty <=0:
+      return
+    self.items[name] = self.items.get(name, 0) + qty
+    
+  def remove(self, name:str, qty: int = 1):
+    if qty  <= 0 or name not in self.items:
+      return
+    if qty >= self.items[name]:
+      del self.items[name]
+    else:
+      self.items[name] -= qty
+      
+  def count(self, name:str):
+    return self.items.get(name, 0)
+  
+  def __contains__(self, name:str):
+    return name in self.items
+  
+  def __len__(self):
+    return len(self.items)
+    
 
 """
 15) CourseCatalog
@@ -289,7 +388,25 @@ Create class `CourseCatalog` with:
 - `__iter__(self)` returning `(code, title)` sorted by code
 - `__len__(self) -> int`
 """
-
+class CourseCatalog:
+  def __init__(self):
+    self.items = {}
+    
+  def add_course(self, code : str, title: str):
+    self.items[code] = title
+    
+  def get_title(self, code:str):
+    self.items.get(code)
+    
+  def __iter__(self):
+    return iter(self.items)
+  
+  def __len__(self):
+    return len(self.items)
+    
+    
+    
+    
 
 """
 16) DefaultDict (magic methods)
@@ -305,3 +422,15 @@ Rules:
   - otherwise create value using `default_factory()`, store, return.
 - If `default_factory` is not callable, treat it as `None`.
 """
+class DefaultDict:
+  def __init__(self, default_factory= None):
+   self.items = {}
+   if default_factory == "None":
+     return
+   
+  def _getitem__(self, key):
+    return self.items[key]
+  
+  
+
+

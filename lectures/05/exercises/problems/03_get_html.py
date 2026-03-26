@@ -16,9 +16,14 @@ URL = "https://example.com"
 
 
 def main() -> None:
+    response =requests.get(URL)
+    response.raise_for_status()
+    print(f"Status: {response.status_code}" )
+    print(f"Header: {response.headers.get('smth')}")
+    print(f"Content: {content_type}")
+    
     # TODO: implement GET request and print HTML response
-    pass
-
+   
 
 if __name__ == "__main__":
     main()

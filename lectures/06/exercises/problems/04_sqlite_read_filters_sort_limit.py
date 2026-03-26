@@ -19,10 +19,14 @@ def main() -> None:
     cur = conn.cursor()
 
     # TODO 1: age >= 22
+    
+    cur.execute("student WHERE age >= 22")
 
     # TODO 2 + 3: order by age desc, limit 3
+    cur.execute("students ORDER BY age DESC, LIMIT 3 ")
 
     # TODO 4: track='backend' and age < 23
+    cur.execute("SELECT * FORM students WHERE age <23 ")
 
     conn.close()
 

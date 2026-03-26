@@ -27,7 +27,7 @@ from collections.abc import Callable, Iterable, Iterator, Sequence
 from typing import Any
 
 
-class Countdown:
+class Countdown(Iterator[int]):
     """Problem 1. Countdown iterator.
 
     Build an iterator class that starts at `n` and yields down to `0` inclusive.
@@ -38,12 +38,22 @@ class Countdown:
     """
 
     def __init__(self, n: int) -> None:
-        raise NotImplementedError
+        self.n = n
+        self.limit = 0
+        
 
     def __iter__(self) -> Iterator[int]:
+        return self
+        
         raise NotImplementedError
 
     def __next__(self) -> int:
+        if self.n <0:
+            raise StopIteration
+        value = self.n
+        self.n -= 1
+        return value
+        
         raise NotImplementedError
 
 
@@ -62,12 +72,26 @@ class StepIterator:
     """
 
     def __init__(self, values: list[Any], step: int = 2) -> None:
-        raise NotImplementedError
+        self.index = 0
+        self.values = values
+        self.step = step
+        if step <= 0:
+            raise ValueError
+        
 
     def __iter__(self) -> Iterator[Any]:
-        raise NotImplementedError
+       return self
 
     def __next__(self) -> Any:
+        if self.index >= len(self.values):
+            raise StopIteration
+        value = self.values[self.index] #this to acsses an element from a list aka indexing
+        self.index += self.step
+        return value 
+        
+        
+        
+            
         raise NotImplementedError
 
 
@@ -82,14 +106,26 @@ class UniqueConsecutiveIterator:
     """
 
     def __init__(self, values: list[Any]) -> None:
-        raise NotImplementedError
-
+        self.values = values
+        self.prev = None
+        self.index = 0
+        
+        
     def __iter__(self) -> Iterator[Any]:
+        return self
+    
         raise NotImplementedError
 
     def __next__(self) -> Any:
-        raise NotImplementedError
-
+        
+        while self.index < len(self.values):
+            current = self.values[self.index]
+            self.index += 1
+        if current == self.prev:
+            return
+        current != self.prev
+        return current 
+            
 
 class CircularIterator:
     """Problem 4. Circular iterator.
@@ -103,12 +139,24 @@ class CircularIterator:
     """
 
     def __init__(self, sequence: Sequence[Any], k: int) -> None:
-        raise NotImplementedError
+        self.sequence = sequence 
+        self.k = k 
+        self.index = 0
+        self.count = 0
+        
+        
+    
 
     def __iter__(self) -> Iterator[Any]:
+        return self
         raise NotImplementedError
 
     def __next__(self) -> Any:
+        if self.count > self.k:
+            raise StopIteration
+        probs = self.sequence[self.index]
+        self.index += 1
+        
         raise NotImplementedError
 
 
@@ -124,16 +172,33 @@ class FlattenIterator:
     """
 
     def __init__(self, data: list[Any]) -> None:
+        self.stack = [iter(data)]
+        
         raise NotImplementedError
 
     def __iter__(self) -> Iterator[Any]:
+        return self
         raise NotImplementedError
 
     def __next__(self) -> Any:
+        while self.stack:
+            try:
+                item = next(self.stack[-1])
+                if isinstance(item, list):
+                    self.stack.append(iter(item))
+                    continue
+                else:
+                    return item
+            except StopIteration:
+                raise StopIteration
         raise NotImplementedError
 
 
 def read_words(filename: str) -> Iterator[str]:
+    for line in filename:
+        for word in line.split():
+            yield word
+        
     """Problem 6. File word reader generator.
 
     Yield one word at a time from a text file without loading the whole
@@ -143,20 +208,46 @@ def read_words(filename: str) -> Iterator[str]:
     >>> list(read_words("sample.txt"))
     ['one', 'two', 'three']
     """
-    raise NotImplementedError
+    
+   
 
 
 def batch(iterable: Iterable[Any], size: int) -> Iterator[list[Any]]:
-    """Problem 7. Batch generator.
+    if size <= 0:
+        raise ValueError
+    
+    current_batch = []
+    for item in iterable:
+        current_batch.append(item)
+        
+    if len(current_batch) == size:
+        yield current_batch
+        current_batch = []
+    
+    if current_batch:
+        yield current_batch  
+    
+        
+#problem 7    
 
-    Yield lists containing at most `size` items from `iterable`.
-    Raise `ValueError` when `size <= 0`.
+def batch(iterable: Iterable[Any], size: int) -> Iterator[list[Any]]:
 
-    Example:
-    >>> list(batch([1, 2, 3, 4, 5, 6, 7], 3))
-    [[1, 2, 3], [4, 5, 6], [7]]
-    """
-    raise NotImplementedError
+    
+
+    if size <= 0:
+        raise ValueError("Batch sizes must be greater than 0.")
+    current_batch = []
+    
+    for item in iterable:
+        current_batch.append(item)
+        
+        
+        if len(current_batch) == size:
+            yield current_batch
+            current_batch = []
+    if current_batch:
+        yield current_batch
+
 
 
 def flatten(data: list[Any]) -> Iterator[Any]:

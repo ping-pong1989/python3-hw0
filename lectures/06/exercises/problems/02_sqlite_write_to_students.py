@@ -25,11 +25,24 @@ STUDENTS = [
 
 def main() -> None:
     conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
+    cur = conn.cursor("""
+        CREATE TABLE IF NOT EXISTS students (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            age INTEGER,
+            email TEXT,
+            track TEXT
+        )
+    """)
+    
 
     # TODO: insert STUDENTS rows here.
     # cur.executemany("INSERT INTO students (name, age, email, track) VALUES (?, ?, ?, ?)", STUDENTS)
-
+    cur.execute()
+    cur.executemany("INSERT INTO students (name, age, email, track) VALUES (?, ?, ?, ?)", STUDENTS)
+    
+    
+    
     conn.commit()
     print("Inserted rows:", cur.rowcount)
     conn.close()

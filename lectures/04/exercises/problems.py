@@ -21,205 +21,146 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from typing import Any
+import time
+from functools import wraps
+from collections import OrderedDict
 
 
 def log_calls(func: Callable[..., Any]) -> Callable[..., Any]:
-    """Problem 1. `log_calls` decorator.
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        result = func(*args, **kwargs)
 
-    Print each function call in this format:
-    `name(arg1, arg2, kw=value) -> result`
+        args_str = ", ".join(repr(a) for a in args)
+        kwargs_str = ", ".join(f"{k}={v!r}" for k, v in kwargs.items())
 
-    Hint:
-    - Function name: `func.__name__`
-    - Positional values: `args`
-    - Keyword names/values: `kwargs.items()`
+        all_args = ", ".join(filter(None, [args_str, kwargs_str]))
 
-    Example:
-    >>> @log_calls
-    ... def add(a, b):
-    ...     return a + b
-    >>> add(2, 3)
-    add(2, 3) -> 5
-    5
-    """
-    raise NotImplementedError
+        print(f"{func.__name__}({all_args}) -> {result}")
+        return result
+
+    return wrapper
 
 
 def measure_time(func: Callable[..., Any]) -> Callable[..., Any]:
-    """Problem 2. `measure_time` decorator.
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start = time.perf_counter()
+        result = func(*args, **kwargs)
+        end = time.perf_counter()
 
-    Measure function execution time and print:
-    `Executed in <milliseconds> ms`
+        ms = (end - start) * 1000
+        print(f"Executed in {ms:.2f} ms")
 
-    Hint:
-    - Use `time.perf_counter()` before and after the function call.
-    - Convert seconds to milliseconds with `* 1000`.
+        return result
 
-    Example:
-    >>> @measure_time
-    ... def work():
-    ...     return "done"
-    >>> work()
-    done
-    """
-    raise NotImplementedError
+    return wrapper
 
 
 def count_calls(func: Callable[..., Any]) -> Callable[..., Any]:
-    """Problem 3. `count_calls` decorator.
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        wrapper.calls += 1
+        return func(*args, **kwargs)
 
-    Count how many times the wrapped function is called.
-    Store the counter in `wrapper.calls`.
-
-    Example:
-    >>> @count_calls
-    ... def ping():
-    ...     return "ok"
-    >>> ping(); ping()
-    'ok'
-    >>> ping.calls
-    2
-    """
-    raise NotImplementedError
+    wrapper.calls = 0
+    return wrapper
 
 
 def ensure_non_negative(func: Callable[..., Any]) -> Callable[..., Any]:
-    """Problem 4. `ensure_non_negative` decorator.
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        result = func(*args, **kwargs)
+        if result < 0:
+            raise ValueError("Negative result not allowed")
+        return result
 
-    Raise `ValueError` when the decorated function returns a negative number.
-
-    Example:
-    >>> @ensure_non_negative
-    ... def diff(a, b):
-    ...     return a - b
-    >>> diff(5, 2)
-    3
-    """
-    raise NotImplementedError
+    return wrapper
 
 
 class Retry:
-    """Problem 5. `Retry(times)` class decorator.
-
-    Implement this as a class with:
-    - `__init__(times)` to validate/store `times`
-    - `__call__(func)` to return the wrapped function
-
-    Retry a function up to `times` retries after the initial attempt.
-    Raise `ValueError` when `times < 0`.
-
-    Example:
-    >>> @Retry(2)
-    ... def flaky():
-    ...     ...
-    """
-
     def __init__(self, times: int) -> None:
-        raise NotImplementedError
+        if times < 0:
+            raise ValueError("times must be >= 0")
+        self.times = times
 
     def __call__(self, func: Callable[..., Any]) -> Callable[..., Any]:
-        raise NotImplementedError
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            attempts = 0
+            while True:
+                try:
+                    return func(*args, **kwargs)
+                except Exception:
+                    if attempts >= self.times:
+                        raise
+                    attempts += 1
+
+        return wrapper
 
 
 class Throttle:
-    """Problem 6. `Throttle(interval)` class decorator.
+    def __init__(self, interval: float) -> None:
+        if interval < 0:
+            raise ValueError("interval must be >= 0")
+        self.interval = interval
 
-    Implement this as a class with:
-    - `__init__(interval)` to validate/store the minimum allowed time gap
-    - `__call__(func)` to return the wrapped function
+    def __call__(self, func: Callable[..., Any]) -> Callable[..., Any]:
+        last_call = None
 
-    The decorated function may be called at most once per `interval` seconds.
-    If it is called again too early, raise `RuntimeError`.
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            nonlocal last_call
+            now = time.perf_counter()
 
-    Requirements:
-    - Use `time.perf_counter()` to track call times
-    - `interval` must be non-negative, otherwise raise `ValueError`
-    - The first call should always succeed
-    - If enough time has passed since the previous successful call,
-      the next call should succeed
-    - Track timing separately for each decorated function
+            if last_call is not None and (now - last_call) < self.interval:
+                raise RuntimeError("Too many calls")
 
-    Example:
-    >>> @Throttle(0.5)
-    ... def ping():
-    ...     return "pong"
-    >>> ping()
-    'pong'
-    >>> ping()
-    Traceback (most recent call last):
-        ...
-    RuntimeError: Too many calls
+            result = func(*args, **kwargs)
+            last_call = now
+            return result
 
-    Notes:
-    - Store the timestamp of the last successful call
-    - Only successful calls should update that timestamp
-    - Implement this as a class decorator
-    """
-
-    pass
+        return wrapper
 
 
 class CallLimit:
-    """Problem 7 (advanced). `CallLimit(limit)` class decorator.
+    def __init__(self, limit: int) -> None:
+        if limit < 0:
+            raise ValueError("limit must be >= 0")
+        self.limit = limit
 
-    Implement this as a class with:
-    - `__init__(limit)` to validate/store the maximum allowed number of calls
-    - `__call__(func)` to return the wrapped function
+    def __call__(self, func: Callable[..., Any]) -> Callable[..., Any]:
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            if wrapper.calls >= self.limit:
+                raise RuntimeError("Call limit exceeded")
 
-    Allow the decorated function to be called at most `limit` times.
-    After that, raise `RuntimeError` on every further call.
+            wrapper.calls += 1
+            return func(*args, **kwargs)
 
-    Requirements:
-    - Raise `ValueError` when `limit < 0`
-    - If `limit == 0`, the function must always raise immediately
-    - Count only actual attempts to call the function
-    - Track the counter separately for each decorated function
-    - Store the number of already used calls in `wrapper.calls`
-
-    Example:
-    >>> @CallLimit(2)
-    ... def greet(name):
-    ...     return f"Hello, {name}"
-    >>> greet("Alice")
-    'Hello, Alice'
-    >>> greet("Bob")
-    'Hello, Bob'
-    >>> greet.calls
-    2
-    >>> greet("Charlie")
-    Traceback (most recent call last):
-        ...
-    RuntimeError: Call limit exceeded
-
-    Notes:
-    - This problem is harder than `count_calls` because behavior changes
-      after the limit is reached
-    - Implement this as a class decorator
-    """
-
-    pass
+        wrapper.calls = 0
+        return wrapper
 
 
 class LruCache:
-    """Problem 8 (optional). `LruCache(maxsize)` class decorator.
-
-    Implement this as a class with:
-    - `__init__(maxsize)` to store cache size
-    - `__call__(func)` to return the wrapped callable
-
-    Use Least Recently Used eviction policy and keep only the last
-    `maxsize` used results.
-
-    Example:
-    >>> @LruCache(2)
-    ... def square(x):
-    ...     return x * x
-    >>> square(2), square(3), square(2)
-    (4, 9, 4)
-    """
-
     def __init__(self, maxsize: int) -> None:
-        raise NotImplementedError
+        self.maxsize = maxsize
 
     def __call__(self, func: Callable[..., Any]) -> Callable[..., Any]:
-        raise NotImplementedError
+        cache = OrderedDict()
+
+        @wraps(func)
+        def wrapper(*args):
+            if args in cache:
+                cache.move_to_end(args)
+                return cache[args]
+
+            result = func(*args)
+            cache[args] = result
+
+            if len(cache) > self.maxsize:
+                cache.popitem(last=False)
+
+            return result
+
+        return wrapper
